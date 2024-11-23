@@ -1,7 +1,12 @@
 import React from 'react'
 
 export const Page = (props) => {
+  const handleClick = () =>{
+    props.setDisplayAll(false);
+    props.setPageDetails(props.page);
+  }
   return <>
-    <h3>{props.page.title}</h3>
+    <br/>
+    <button onClick={handleClick}>{props.page.title}</button>
   </>
 }
