@@ -26,8 +26,9 @@ export const App = () => {
   const [newBookDetail, setNewBookDetail] = useState({
     title:'',
     content:'',
-    author: {name:'', email:''},
-    tags: []
+    name: '', 
+    email: '',
+    tags: ''
   })
 
   const [title, setTitle] = useState('');
@@ -82,19 +83,26 @@ export const App = () => {
     setNewBookDetail({
       title: title,
       content: content,
-      author: { name: author, email: email},
+      name: author,
+      email: email,
       tags: tags
     });
     const response = await fetch(`${apiURL}/wiki`, 
     {
       method: 'POST',
       headers: myHeaders,
-      body:  JSON.stringify({name:newBookDetail.author.name, email: newBookDetail.author.email})
+      body:  JSON.stringify(newBookDetail)
     });
     const data = await response.json();
-    console.log(data);
+    setNewBookDetail({
+      title:'',
+      content:'',
+      name: '', 
+      email: '',
+      tags: ''
+    })
   };
-
+ // Return to list of books functions
   const handleBack = () =>{
     setDisplayAll(true);
     setPageDetails({
@@ -109,6 +117,27 @@ export const App = () => {
       title: '',
       updatedAt: '',
     });
+  }
+
+  const returnToList = async () =>{
+     await fetchPages();
+     setDisplayForm(false);
+     setNewBookDetail({
+      title:'',
+      content:'',
+      name: '', 
+      email: '',
+      tags: ''
+     })
+  }
+
+  // Delete Functions
+  const handleDelete = async () =>{
+    const response = await fetch(`${apiURL}/wiki/:`+pageDetails.slug, {
+      method: 'DELETE'
+    });
+    const data = await response.json();
+    handleBack();
   }
   return (
 		<main>
@@ -136,7 +165,7 @@ export const App = () => {
                   ))}
                 </ol>
               </div>
-              <button onClick={handleBack}> Back to Page List </button>
+              <div><button onClick={handleDelete}>Delete</button><button onClick={handleBack}> Back to Page List </button></div>
         </>
       )}
       {displayForm && (
@@ -166,7 +195,7 @@ export const App = () => {
           <button type='submit'> Submit </button>
         </form>
         <br/>
-        <button onClick={()=>setDisplayForm(false)}> View All Authors </button>
+        <button onClick={returnToList}> View All Authors </button>
         </>
       )}
 		</main>
