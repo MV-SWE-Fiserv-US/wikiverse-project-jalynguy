@@ -7,17 +7,59 @@ import apiURL from '../api'
 export const App = () => {
   const [pages, setPages] = useState([])
   const [displayAll, setDisplayAll] = useState(true);
+  const [displayForm, setDisplayForm] = useState(false);
   const [pageDetails, setPageDetails] = useState({
+    author: '',
     authorId: 0,
     content: '',
     createdAt: '',
     id: 0,
     slug: '',
     status: 'closed',
+    tags: [],
     title: '',
-    updatedAt: ''
+    updatedAt: '',
   });
 
+
+  // Form details
+  const [newBookDetail, setNewBookDetail] = useState({
+    title:'',
+    content:'',
+    author: {name:'', email:''},
+    tags: []
+  })
+
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [author, setAuthor] = useState('');
+  const [email, setEmail] = useState('');
+  const [tags, setTags] = useState([]);
+
+
+  // On Change functions
+  const handleTitle = (e) =>{
+      setTitle(e.target.value);
+  }
+  const handleContent = (e) =>{
+      setContent(e.target.value);
+  }
+  const handleAuthor = (e)=>{
+    setAuthor(e.target.value);
+  }
+  const handleEmail = (e) =>{
+    setEmail(e.target.value);
+  }
+  const handleTags = (e) => {
+    setTags(e.target.value);
+  }
+
+
+  // Header variable
+  const myHeaders = new Headers();
+  myHeaders.append('Content-Type', 'application/json');
+
+  // Fetch functions
   async function fetchPages () {
     try {
       const response = await fetch(`${apiURL}/wiki`)
@@ -28,38 +70,103 @@ export const App = () => {
     }
   }
 
+
   useEffect(() => {
     fetchPages()
   }, [])
 
+
+  // submit function
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setNewBookDetail({
+      title: title,
+      content: content,
+      author: { name: author, email: email},
+      tags: tags
+    });
+    const response = await fetch(`${apiURL}/wiki`, 
+    {
+      method: 'POST',
+      headers: myHeaders,
+      body:  JSON.stringify({name:newBookDetail.author.name, email: newBookDetail.author.email})
+    });
+    const data = await response.json();
+    console.log(data);
+  };
+
   const handleBack = () =>{
     setDisplayAll(true);
     setPageDetails({
+      author: '',
       authorId: 0,
       content: '',
       createdAt: '',
       id: 0,
       slug: '',
       status: 'closed',
+      tags: [],
       title: '',
-      updatedAt: ''
+      updatedAt: '',
     });
   }
   return (
 		<main>
-      {displayAll && (
+      <h1>WikiVerse</h1>
+      {displayAll && !displayForm && (
         <>
-        <h1>WikiVerse</h1>
         <h2>An interesting 📚</h2>
-        <PagesList pages={pages} setDisplayAll={setDisplayAll} setPageDetails={setPageDetails}/>  
+        <PagesList pages={pages} setDisplayAll={setDisplayAll} setPageDetails={setPageDetails}/> 
+        <br/>
+        <br/>
+        <button onClick={()=>setDisplayForm(true)}> Create Page </button> 
         </>
       )}
-      {!displayAll && (
+      {!displayAll &&  !displayForm &&(
         <>
               <div> {pageDetails.title} </div>
+              <div> <b> Author:  {pageDetails.author}</b></div>
               <div> <b> Published: {pageDetails.createdAt}</b></div>
               <div> {pageDetails.content} </div>
+              <div>
+                <title> Tags </title>
+                <ol>
+                  {pageDetails.tags.map((item, index)=> (
+                      <li key={index}>{item.name}</li>
+                  ))}
+                </ol>
+              </div>
               <button onClick={handleBack}> Back to Page List </button>
+        </>
+      )}
+      {displayForm && (
+        <>
+        <h1> Add a new book </h1>
+        <form onSubmit={handleSubmit}>
+          <label> Title
+          <input type='text' placeholder='Book Title' value={title} onChange={handleTitle}/>
+          </label>
+          <br/>
+          <label> Content 
+          <input type='text' placeholder='Content' value={content} onChange={handleContent}/>
+          </label>
+          <br/>
+          <label> Author Name 
+          <input type='text' placeholder='Author Name' value={author} onChange={handleAuthor}/>
+          </label>
+          <br/>
+          <label> Author Email 
+          <input type='text' placeholder='Author Email' value={email} onChange={handleEmail}/>
+          </label>
+          <br/>
+          <label> Tags 
+          <input type='text' placeholder='Add tags, seperated by spaces' value={tags} onChange={handleTags}/>
+          </label>
+          <br/>
+          <button type='submit'> Submit </button>
+        </form>
+        <br/>
+        <button onClick={()=>setDisplayForm(false)}> View All Authors </button>
         </>
       )}
 		</main>
